@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>URL Segment Extractor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Extract Segment Between 3rd and 4th Slash</h2>
+  <label for="urlInput">Enter a URL:</label><br>
+  <input type="text" id="urlInput" size="80" placeholder="https://example.com/path1/path2/file.pdf">
+  <br>
+  <button onclick="extractSegment()">Extract</button>
+
+  <p id="result"></p>
+
+  <script>
+    function extractSegment() {
+      const url = document.getElementById('urlInput').value;
+      const parts = url.split('/');
+      
+      if (parts.length > 4) {
+        const segment = parts[4];
+        document.getElementById('result').textContent = `Segment: ${segment}`;
+      } else {
+        document.getElementById('result').textContent = "URL doesn't have enough slashes.";
+      }
+    }
+  </script>
+</body>
+</html>
