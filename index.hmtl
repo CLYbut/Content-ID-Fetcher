@@ -8,25 +8,31 @@
       font-family: Arial, sans-serif;
       margin: 40px;
     }
-    input, button {
+    input, button, textarea {
       padding: 10px;
       font-size: 16px;
       margin-top: 10px;
     }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
+    #outputBox {
+      width: 100%;
+      height: 40px;
+      margin-top: 10px;
+      resize: none;
     }
   </style>
 </head>
 <body>
   <h2>Extract Segment Between 3rd and 4th Slash</h2>
+  
   <label for="urlInput">Enter a URL:</label><br>
-  <input type="text" id="urlInput" size="80" placeholder="https://example.com/path1/path2/file.pdf">
-  <br>
-  <button onclick="extractSegment()">Extract</button>
-
-  <p id="result"></p>
+  <input type="text" id="urlInput" size="80" placeholder="https://example.com/path1/path2/file.pdf"><br>
+  
+  <button onclick="extractSegment()">Capture</button><br>
+  
+  <label for="outputBox">Extracted Segment:</label><br>
+  <textarea id="outputBox" readonly></textarea><br>
+  
+  <button onclick="copyToClipboard()">Copy</button>
 
   <script>
     function extractSegment() {
@@ -35,10 +41,18 @@
       
       if (parts.length > 4) {
         const segment = parts[4];
-        document.getElementById('result').textContent = `Segment: ${segment}`;
+        document.getElementById('outputBox').value = segment;
       } else {
-        document.getElementById('result').textContent = "URL doesn't have enough slashes.";
+        document.getElementById('outputBox').value = "URL doesn't have enough slashes.";
       }
+    }
+
+    function copyToClipboard() {
+      const output = document.getElementById('outputBox');
+      output.select();
+      output.setSelectionRange(0, 99999); // For mobile devices
+      document.execCommand("copy");
+      alert("Copied: " + output.value);
     }
   </script>
 </body>
