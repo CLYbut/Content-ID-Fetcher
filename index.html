@@ -5,25 +5,136 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Text Formatter</title>
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
-    textarea { width: 48%; height: 320px; padding: 12px; box-sizing: border-box; }
-    .row { display: flex; gap: 4%; }
-    button { margin-top: 12px; padding: 8px 14px; }
-    .controls { margin-top: 12px; }
+    :root { --gap: 16px; --pad: 12px; --bg: #f7f9fb; --accent: #2563eb; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; background: var(--bg); color: #0f172a; }
+    h3 { margin: 0 0 12px 0; }
+    .row { display: flex; gap: 4%; align-items: stretch; }
+    textarea { width: 48%; height: 360px; padding: var(--pad); box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size: 14px; line-height: 1.45; background: #fff; }
+    .controls { margin-top: 12px; display:flex; gap: 8px; align-items:center; flex-wrap:wrap; }
+    button { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; background: var(--accent); color: white; font-weight: 600; }
+    button.secondary { background: #6b7280; }
+    button.ghost { background: transparent; color: var(--accent); border: 1px solid #c7d2fe; }
+    .note { margin-top: 10px; color: #374151; font-size: 13px; }
+    @media (max-width: 800px) {
+      .row { flex-direction: column; }
+      textarea { width: 100%; height: 240px; }
+    }
   </style>
 </head>
 <body>
   <h3>Text Formatter</h3>
+
   <div class="row">
     <textarea id="input" placeholder="Paste text here..."></textarea>
-	<textarea id="output" placeholder="Formatted output..." readonly></textarea>
-  </div>
-  <div class="controls">
-    <button id="formatBtn">Format</button>
-    <button id="copyBtn">Copy Output</button>
-    <button id="clearBtn">Clear</button>
+    <textarea id="output" placeholder="Formatted output..." readonly></textarea>
   </div>
 
-  <script src="script.js"></script>
+  <div class="controls">
+    <button id="formatBtn">Format</button>
+    <button id="combineBtn" class="secondary">Combine Into Single Paragraph</button>
+    <button id="copyBtn" class="ghost">Copy Output</button>
+    <button id="clearBtn" class="secondary">Clear</button>
+    <div style="margin-left:auto; font-size:13px; color:#374151;">Tip: press <strong>Ctrl/Cmd+Enter</strong> to format quickly</div>
+  </div>
+
+  <div class="note">
+    Behavior: trims leading/trailing spaces, collapses multiple internal spaces, normalizes newlines to Unix style, and can combine all lines into a single paragraph.
+  </div>
+
+  <script>
+    (function () {
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const formatBtn = document.getElementById('formatBtn');
+      const combineBtn = document.getElementById('combineBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const clearBtn = document.getElementById('clearBtn');
+
+      function normalizeNewlines(text) {
+        return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      }
+
+      function collapseWhitespace(text) {
+        return text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ');
+      }
+
+      function cleanText(text) {
+        if (!text) return '';
+        let t = normalizeNewlines(text);
+        // Trim each line and collapse internal whitespace, keep paragraph breaks
+        t = t.split('\n').map(line => line.trim()).join('\n');
+        t = t.replace(/\s+/g, ' ');
+        // Collapse 3+ newlines to 2 (single paragraph break)
+        t = t.replace(/\n{3,}/g, '\n\n');
+        // Remove leading/trailing blank lines
+        t = t.replace(/^\s*\n/, '').replace(/\n\s*$/, '');
+        return t;
+      }
+
+      function combineToSingleParagraph(text) {
+        if (!text) return '';
+        let t = normalizeNewlines(text);
+        // Replace all newline sequences with a single space
+        t = t.replace(/\n+/g, ' ');
+        // Replace non-breaking spaces and collapse multiple spaces into one
+        t = collapseWhitespace(t);
+        // Trim leading/trailing spaces
+        t = t.trim();
+        return t;
+      }
+
+      formatBtn.addEventListener('click', () => {
+        output.value = cleanText(input.value);
+        formatBtn.textContent = 'Formatted';
+        setTimeout(() => formatBtn.textContent = 'Format', 900);
+      });
+
+      combineBtn.addEventListener('click', () => {
+        output.value = combineToSingleParagraph(input.value);
+        combineBtn.textContent = 'Combined';
+        setTimeout(() => combineBtn.textContent = 'Combine Into Single Paragraph', 900);
+      });
+
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(output.value);
+          copyBtn.textContent = 'Copied';
+          setTimeout(() => copyBtn.textContent = 'Copy Output', 1200);
+        } catch (err) {
+          try {
+            output.select();
+            document.execCommand('copy');
+            copyBtn.textContent = 'Copied';
+            setTimeout(() => copyBtn.textContent = 'Copy Output', 1200);
+          } catch (e) {
+            copyBtn.textContent = 'Copy Failed';
+            setTimeout(() => copyBtn.textContent = 'Copy Output', 1200);
+          }
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        output.value = '';
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          output.value = cleanText(input.value);
+          formatBtn.textContent = 'Formatted';
+          setTimeout(() => formatBtn.textContent = 'Format', 900);
+        }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Enter') {
+          e.preventDefault();
+          output.value = combineToSingleParagraph(input.value);
+          combineBtn.textContent = 'Combined';
+          setTimeout(() => combineBtn.textContent = 'Combine Into Single Paragraph', 900);
+        }
+      });
+
+      window.textFormatter = { cleanText, combineToSingleParagraph };
+    })();
+  </script>
 </body>
 </html>
