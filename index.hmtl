@@ -1,119 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Capture First Path Segment and Remove Dashes</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Text Formatter</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 32px; line-height: 1.45; }
-    label { display: block; margin-top: 12px; font-weight: bold; }
-    input[type="text"] { width: 100%; padding: 10px; font-size: 14px; box-sizing: border-box; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    textarea { width: 48%; height: 320px; padding: 12px; box-sizing: border-box; }
+    .row { display: flex; gap: 4%; }
+    button { margin-top: 12px; padding: 8px 14px; }
     .controls { margin-top: 12px; }
-    button {
-      padding: 10px 14px;
-      font-size: 14px;
-      margin-right: 8px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-      background-color: #007bff;
-      color: #fff;
-    }
-    button:disabled { opacity: 0.6; cursor: default; }
-    textarea { width: 100%; padding: 10px; font-size: 14px; box-sizing: border-box; margin-top: 8px; resize: vertical; min-height: 44px; }
-    .small { font-size: 13px; color: #555; margin-top: 6px; }
   </style>
 </head>
 <body>
-  <h3>Capture first path segment and remove dashes</h3>
-
-  <label for="urlInput">Enter a URL</label>
-  <input id="urlInput" type="text" placeholder="https://media.copeland.com/b852c6c0-8d76-40f8-9b40-b16d002d54d4/..." />
-
+  <h3>Text Formatter</h3>
+  <div class="row">
+    <textarea id="input" placeholder="Paste text here..."></textarea>
+	<textarea id="output" placeholder="Formatted output..." readonly></textarea>
+  </div>
   <div class="controls">
-    <button id="captureBtn">Capture</button>
+    <button id="formatBtn">Format</button>
+    <button id="copyBtn">Copy Output</button>
+    <button id="clearBtn">Clear</button>
   </div>
 
-  <label for="capturedBox">Captured segment (first path segment)</label>
-  <textarea id="capturedBox" readonly placeholder="Captured segment appears here"></textarea>
-
-  <label for="cleanBox">Cleaned segment (dashes removed)</label>
-  <textarea id="cleanBox" readonly placeholder="Cleaned segment appears here"></textarea>
-
-  <div class="controls" style="margin-top:8px;">
-    <button id="copyCleanBtn" disabled>Copy Cleaned</button>
-  </div>
-
-  <div class="small">Behavior: the code extracts the first non-empty path segment of the URL then removes all dashes from that segment</div>
-
-  <script>
-    const urlInput = document.getElementById('urlInput');
-    const captureBtn = document.getElementById('captureBtn');
-    const copyCleanBtn = document.getElementById('copyCleanBtn');
-    const capturedBox = document.getElementById('capturedBox');
-    const cleanBox = document.getElementById('cleanBox');
-
-    function getFirstPathSegment(raw) {
-      try {
-        const u = new URL(raw);
-        const parts = u.pathname.split('/').filter(Boolean);
-        return parts.length ? parts[0] : '';
-      } catch (e) {
-        const parts = raw.split('/').filter(part => part !== '');
-        if (parts.length >= 3) return parts[2];
-        if (parts.length >= 1) return parts[0];
-        return '';
-      }
-    }
-
-    function removeDashes(str) {
-      return str.replace(/-/g, '');
-    }
-
-    captureBtn.addEventListener('click', () => {
-      const raw = urlInput.value.trim();
-      if (!raw) {
-        capturedBox.value = 'Please enter a URL.';
-        cleanBox.value = '';
-        copyCleanBtn.disabled = true;
-        return;
-      }
-
-      const captured = getFirstPathSegment(raw);
-      if (!captured) {
-        capturedBox.value = "No path segment found in the provided URL.";
-        cleanBox.value = '';
-        copyCleanBtn.disabled = true;
-        return;
-      }
-
-      const cleaned = removeDashes(captured);
-
-      capturedBox.value = captured;
-      cleanBox.value = cleaned;
-      copyCleanBtn.disabled = cleaned === '';
-    });
-
-    copyCleanBtn.addEventListener('click', async () => {
-      const text = cleanBox.value;
-      if (!text) return;
-      try {
-        await navigator.clipboard.writeText(text);
-        copyCleanBtn.textContent = 'Copied';
-        setTimeout(() => copyCleanBtn.textContent = 'Copy Cleaned', 1500);
-      } catch {
-        cleanBox.select();
-        document.execCommand('copy');
-        copyCleanBtn.textContent = 'Copied';
-        setTimeout(() => copyCleanBtn.textContent = 'Copy Cleaned', 1500);
-      }
-    });
-
-    urlInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        captureBtn.click();
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
